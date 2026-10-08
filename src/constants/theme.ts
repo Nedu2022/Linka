@@ -24,7 +24,36 @@ export const Colors = {
   },
 } as const;
 
-export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
+export const AppName = 'Linka';
+
+export const Brand = {
+  green: '#11805E',
+  greenBright: '#18936F',
+  greenDark: '#0A5C43',
+  greenTint: '#EAF6F0',
+  greenSoft: '#E6F4EE',
+  mint: '#D9EEE4',
+  orange: '#F4A62A',
+  orangeTint: '#FDF1DF',
+  cream: '#FBF4E8',
+  ink: '#121614',
+  body: '#5F6763',
+  muted: '#8A918D',
+  border: '#E2E7E4',
+  inputBg: '#F5F7F6',
+  canvas: '#FCFDFC',
+  white: '#FFFFFF',
+} as const;
+
+export const Typeface = {
+  regular: 'PlusJakartaSans_400Regular',
+  medium: 'PlusJakartaSans_500Medium',
+  semibold: 'PlusJakartaSans_600SemiBold',
+  bold: 'PlusJakartaSans_700Bold',
+  extrabold: 'PlusJakartaSans_800ExtraBold',
+} as const;
+
+export type ThemeColor =keyof typeof Colors.light & keyof typeof Colors.dark;
 
 export const Fonts = Platform.select({
   ios: {
@@ -63,3 +92,12 @@ export const Spacing = {
 
 export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
 export const MaxContentWidth = 800;
+
+export const Surface = {
+  canvas: '#F1F2F0',
+  card: '#FFFFFF',
+  ink: '#151816',
+  lime: '#D5F56B',
+  green: '#05614E',
+  hairline: '#E6E8E6',
+} as const;

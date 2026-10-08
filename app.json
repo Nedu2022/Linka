@@ -7,9 +7,6 @@
     "icon": "./assets/images/icon.png",
     "scheme": "linka",
     "userInterfaceStyle": "automatic",
-    "ios": {
-      "icon": "./assets/expo.icon"
-    },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
@@ -17,7 +14,8 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.nnedu.Linka"
     },
     "web": {
       "output": "static",
@@ -28,15 +26,28 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "backgroundColor": "#05614E"
         }
-      ]
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Linka needs access to your photos so you can add logos and product images.",
+          "cameraPermission": "Linka needs the camera for identity verification selfies.",
+          "microphonePermission": false
+        }
+      ],
+      "expo-sqlite"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "ios": {
+      "infoPlist": {
+        "CADisableMinimumFrameDurationOnPhone": true
+      },
+      "bundleIdentifier": "com.nnedu.Linka"
     }
   }
 }
