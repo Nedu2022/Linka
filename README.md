@@ -1,56 +1,110 @@
-# Welcome to your Expo app 👋
+# Linka
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Linka is a mobile app for Nigerian vendors who sell on WhatsApp and Instagram. A vendor signs up with their phone number, sets up a store, adds products, and gets one link to share with customers.
 
-## Get started
+Built with Expo and React Native. Runs on iOS, Android, and web.
 
-1. Install dependencies
+<p>
+  <img src="docs/screenshots/welcome.png" width="200" alt="Welcome screen" />
+  <img src="docs/screenshots/profile.png" width="200" alt="Profile screen" />
+  <img src="docs/screenshots/payout.png" width="200" alt="Payout account screen" />
+  <img src="docs/screenshots/share-store.png" width="200" alt="Share store screen" />
+</p>
 
-   ```bash
-   npm install
-   ```
+## Status
 
-2. Start the app
+The app is in active development. The vendor side is mostly built; there is no backend yet, so data is saved on the device.
 
-   ```bash
-   npx expo start
-   ```
+| Area | Screens | State |
+| --- | --- | --- |
+| Onboarding | Welcome, phone number, OTP, profile | Built. OTP accepts any 6-digit code until SMS is connected. |
+| Store | Store setup, store preview | Built |
+| Payouts | Payout account, BVN/NIN check | Built. Account name lookup is stubbed. |
+| Dashboard | Stats, quick actions, recent orders | Built with sample data |
+| Products | List, add/edit, bulk add from photos, details | Built. AI product suggestions are simulated. |
+| Sharing | QR code, copy link, WhatsApp, Instagram | Built |
+| Orders | Orders list, order details | Not started |
+| Account | Notifications, settings | Not started |
 
-In the output, you'll find options to open the app in a
+## Tech stack
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+- [Expo](https://expo.dev) SDK 57 and React Native 0.86
+- [Expo Router](https://docs.expo.dev/router/introduction/) for file-based navigation
+- TypeScript
+- React Native Reanimated for animation
+- `expo-sqlite` key-value store for on-device data (`localStorage` on web)
+- `react-native-svg` and `react-native-qrcode-svg` for icons and QR codes
+- Plus Jakarta Sans
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## Getting started
 
-## Get a fresh project
-
-When you're ready, run:
+You need Node.js 20 or later and npm.
 
 ```bash
-npm run reset-project
+git clone <repo-url>
+cd Linka
+npm install
+npx expo start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+From the Expo CLI, press `i` for the iOS simulator, `a` for an Android emulator, or `w` for the browser.
 
-### Other setup steps
+Some features (camera, image picker, haptics) need a [development build](https://docs.expo.dev/develop/development-builds/introduction/) rather than Expo Go:
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+```bash
+npx expo run:ios
+npx expo run:android
+```
 
-## Learn more
+## Scripts
 
-To learn more about developing your project with Expo, look at the following resources:
+| Command | What it does |
+| --- | --- |
+| `npx expo start` | Start the dev server |
+| `npm run ios` | Build and run on iOS |
+| `npm run android` | Build and run on Android |
+| `npm run web` | Run in the browser |
+| `npx expo lint` | Lint |
+| `npx tsc --noEmit` | Type-check |
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+Add packages with `npx expo install <package>` so versions match the Expo SDK.
 
-## Join the community
+## Project structure
 
-Join our community of developers creating universal apps.
+```text
+src/
+  app/          Screens. Each file is a route (Expo Router).
+  components/   UI grouped by feature: auth, dashboard, payout, products, store
+  state/        On-device stores: store profile, vendor profile, payout, products
+  constants/    Theme colours and fonts
+  utils/        Money, phone, and slug formatting
+assets/         Images and illustrations
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+### Sign-up flow
+
+```text
+welcome → phone number → OTP → profile → store setup → payout → store preview → dashboard
+```
+
+Returning vendors with a saved store open straight to the dashboard.
+
+## Connecting a backend
+
+These pieces are placeholders and need a server:
+
+- **OTP**: `src/app/verify.tsx` accepts any code. Send and check codes through an SMS provider.
+- **Account name lookup**: `resolveAccountName` in `src/state/payout.ts` returns the vendor's profile name. Replace it with a call to your server, which calls a bank resolve endpoint (for example Paystack). Don't call that endpoint from the app, because it needs a secret key.
+- **Data**: everything in `src/state/` is saved on the device. Each store exposes the same small API (`save`, `get`, `use`), so it can be swapped for API calls.
+
+## Roadmap
+
+- Orders list and order details
+- Notifications
+- Settings (edit profile, payout account, store)
+- Backend: auth, products, orders, payments
+- Customer-facing storefront
+
+## License
+
+MIT. See [LICENSE](LICENSE).
