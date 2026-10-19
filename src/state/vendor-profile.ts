@@ -35,6 +35,12 @@ export function saveVendorProfile(next: VendorProfile) {
   listeners.forEach((listener) => listener());
 }
 
+export function clearVendorProfile() {
+  profile = null;
+  writeItem(STORAGE_KEY, null);
+  listeners.forEach((listener) => listener());
+}
+
 export function getVendorProfile() {
   return profile;
 }

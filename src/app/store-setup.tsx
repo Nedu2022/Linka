@@ -1,10 +1,12 @@
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
 import { Keyboard, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { CircleButton } from '@/components/circle-button';
+import { ChevronLeftIcon } from '@/components/icons';
 import { PrimaryButton } from '@/components/primary-button';
 import { type StoreCategory } from '@/components/store/categories';
 import { CategoryField } from '@/components/store/category-field';
@@ -12,17 +14,19 @@ import { CategorySheet } from '@/components/store/category-sheet';
 import { StorePreviewCard } from '@/components/store/store-preview-card';
 import { TextField } from '@/components/store/text-field';
 import { Brand, Surface, Typeface } from '@/constants/theme';
-import { saveStoreProfile } from '@/state/store-profile';
+import { getStoreProfile, saveStoreProfile } from '@/state/store-profile';
 import { toStoreSlug } from '@/utils/slug';
 
 const NAME_MAX = 40;
 const DESCRIPTION_MAX = 140;
 
 export default function StoreSetupScreen() {
-  const [logo, setLogo] = useState<string | null>(null);
-  const [name, setName] = useState('');
-  const [category, setCategory] = useState<StoreCategory | null>(null);
-  const [description, setDescription] = useState('');
+  const editing = useLocalSearchParams<{ edit?: string }>().edit === '1';
+  const existing = editing ? getStoreProfile() : null;
+  const [logo, setLogo] = useState<string | null>(existing?.logo ?? null);
+  const [name, setName] = useState(existing?.name ?? '');
+  const [category, setCategory] = useState<StoreCategory | null>(existing?.category ?? null);
+  const [description, setDescription] = useState(existing?.description ?? '');
   const [sheetOpen, setSheetOpen] = useState(false);
 
   const slug = toStoreSlug(name);
@@ -36,14 +40,31 @@ export default function StoreSetupScreen() {
   const createStore = () => {
     if (!category) return;
     Keyboard.dismiss();
-    saveStoreProfile({ name: name.trim(), slug, category, description: description.trim(), logo, verified: false });
-    router.push({ pathname: '/payout', params: { from: 'setup' } });
+    saveStoreProfile({
+      name: name.trim(),
+      slug,
+      category,
+      description: description.trim(),
+      logo,
+      verified: existing?.verified ?? false,
+    });
+    if (editing) router.back();
+    else router.push({ pathname: '/payout', params: { from: 'setup' } });
   };
 
   return (
     <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
       <StatusBar style="dark" />
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        {editing && (
+          <View style={styles.topBar}>
+            <CircleButton
+              label="Go back"
+              onPress={() => router.back()}
+              icon={<ChevronLeftIcon size={22} color={Surface.ink} />}
+            />
+          </View>
+        )}
         <ScrollView
           style={styles.flex}
           contentContainerStyle={styles.body}
@@ -51,7 +72,7 @@ export default function StoreSetupScreen() {
           keyboardDismissMode="interactive"
           showsVerticalScrollIndicator={false}>
           <Animated.Text entering={FadeInDown.duration(450)} style={styles.title}>
-            Set up your store
+            {editing ? 'Store details' : 'Set up your store'}
           </Animated.Text>
           <Animated.Text entering={FadeInDown.delay(70).duration(450)} style={styles.subtitle}>
             This is how customers will see you.
@@ -101,16 +122,16 @@ export default function StoreSetupScreen() {
         </ScrollView>
 
         <View style={styles.footer}>
-          <PrimaryButton label="Create my store" onPress={createStore} disabled={!isValid} rider="van" />
+          <PrimaryButton
+            label={editing ? 'Save changes' : 'Create my store'}
+            onPress={createStore}
+            disabled={!isValid}
+            rider={editing ? 'none' : 'van'}
+          />
         </View>
       </KeyboardAvoidingView>
 
-      <CategorySheet
-        visible={sheetOpen}
-        value={category}
-        onSelect={setCategory}
-        onClose={() => setSheetOpen(false)}
-      />
+      <CategorySheet visible={sheetOpen} value={category} onSelect={setCategory} onClose={() => setSheetOpen(false)} />
     </SafeAreaView>
   );
 }
@@ -122,6 +143,10 @@ const styles = StyleSheet.create({
   },
   flex: {
     flex: 1,
+  },
+  topBar: {
+    paddingHorizontal: 20,
+    paddingTop: 4,
   },
   body: {
     paddingHorizontal: 20,

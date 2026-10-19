@@ -1,52 +1,40 @@
-import { StyleSheet, View } from 'react-native';
-import Svg, { Path, Rect } from 'react-native-svg';
+import { View } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 
-import { Brand } from '@/constants/theme';
+const TILE = '#F4A62A';
+const BAG = '#FBF4E8';
+const INK = '#0A3D30';
 
-type Props = { size: number; variant?: 'glass' | 'solid' | 'deep' };
-
-export function LogoMark({ size, variant = 'glass' }: Props) {
+/** Linka's mark: a shopping bag with an "L", on an orange tile. */
+export function LogoMark({ size }: { size: number }) {
   return (
     <View
-      style={[
-        styles.tile,
-        { width: size, height: size, borderRadius: size * 0.28 },
-        styles[variant],
-      ]}>
-      <Svg width={size * 0.58} height={size * 0.5} viewBox="0 0 58 50">
-        <Rect x={0} y={4} width={58} height={38} rx={10} fill="#000000" fillOpacity={0.12} />
-        <Rect x={0} y={0} width={58} height={38} rx={10} fill={Brand.orange} />
-        <Path d="M23 37 L29 46 L35 37 Z" fill={Brand.orange} />
-        <Path
-          d="M20 31 V8 L38 31 V8"
-          stroke={Brand.white}
-          strokeWidth={4.5}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          fill="none"
-        />
-        <Path d="M14 16 H44 M14 23 H44" stroke={Brand.white} strokeWidth={3} strokeLinecap="round" />
-      </Svg>
+      style={{
+        width: size,
+        height: size,
+        borderRadius: size * 0.28,
+        backgroundColor: TILE,
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}>
+      <ShoppingBag size={size * 0.74} />
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  tile: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  glass: {
-    backgroundColor: 'rgba(255,255,255,0.14)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.28)',
-  },
-  solid: {
-    backgroundColor: Brand.green,
-  },
-  deep: {
-    backgroundColor: '#0A4D3C',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-  },
-});
+function ShoppingBag({ size }: { size: number }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 64 64">
+      <Path d="M24 22 v-5 a8 8 0 0 1 16 0 v5" fill="none" stroke={INK} strokeWidth={4.5} strokeLinecap="round" />
+      <Path d="M15 22 h34 l-2.5 28 a4 4 0 0 1 -4 3.6 h-21 a4 4 0 0 1 -4 -3.6 z" fill={BAG} />
+      <Path
+        d="M25 33 v11 h13"
+        fill="none"
+        stroke={INK}
+        strokeWidth={4.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}

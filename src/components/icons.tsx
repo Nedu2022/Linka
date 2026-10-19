@@ -361,3 +361,51 @@ export function BankIcon({ size = 20, color }: IconProps) {
     </Svg>
   );
 }
+
+export function TruckIcon({ size = 20, color }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path d="M3 6h11v10H3zM14 10h4l3 3v3h-7z" stroke={color} strokeWidth={1.9} {...line} />
+      <Circle cx={7} cy={17.5} r={1.8} stroke={color} strokeWidth={1.9} fill="none" />
+      <Circle cx={17} cy={17.5} r={1.8} stroke={color} strokeWidth={1.9} fill="none" />
+    </Svg>
+  );
+}
+
+export function MapPinIcon({ size = 20, color }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path
+        d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0113 0c0 5.4-6.5 11-6.5 11z"
+        stroke={color}
+        strokeWidth={1.9}
+        {...line}
+      />
+      <Circle cx={12} cy={10} r={2.3} stroke={color} strokeWidth={1.9} fill="none" />
+    </Svg>
+  );
+}
+
+export function LogOutIcon({ size = 20, color }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path d="M10 4H5v16h5M15 8l4 4-4 4M9 12h10" stroke={color} strokeWidth={1.9} {...line} />
+    </Svg>
+  );
+}
+
+export function MinusIcon({ size = 18, color }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path d="M5 12h14" stroke={color} strokeWidth={2.2} {...line} />
+    </Svg>
+  );
+}
+
+export function CloseIcon({ size = 20, color }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path d="M18 6L6 18M6 6l12 12" stroke={color} strokeWidth={2.2} {...line} />
+    </Svg>
+  );
+}

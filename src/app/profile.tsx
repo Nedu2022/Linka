@@ -6,7 +6,8 @@ import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AUTH_GREEN } from '@/components/auth/auth-top-bar';
-import { CheckIcon } from '@/components/icons';
+import { CircleButton } from '@/components/circle-button';
+import { CheckIcon, ChevronLeftIcon } from '@/components/icons';
 import { PrimaryButton } from '@/components/primary-button';
 import { FieldLabel, TextField } from '@/components/store/text-field';
 import { Brand, Surface, Typeface } from '@/constants/theme';
@@ -17,7 +18,8 @@ const NAME_MAX = 60;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 export default function ProfileScreen() {
-  const params = useLocalSearchParams<{ phone?: string }>();
+  const params = useLocalSearchParams<{ phone?: string; edit?: string }>();
+  const editing = params.edit === '1';
   const existing = getVendorProfile();
   const phone = params.phone ?? existing?.phone ?? '';
 
@@ -33,13 +35,23 @@ export default function ProfileScreen() {
     if (!isValid) return;
     Keyboard.dismiss();
     saveVendorProfile({ fullName: fullName.trim(), email: trimmedEmail, phone });
-    router.replace('/store-setup');
+    if (editing) router.back();
+    else router.replace('/store-setup');
   };
 
   return (
     <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
       <StatusBar style="dark" />
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        {editing && (
+          <View style={styles.topBar}>
+            <CircleButton
+              label="Go back"
+              onPress={() => router.back()}
+              icon={<ChevronLeftIcon size={22} color={Surface.ink} />}
+            />
+          </View>
+        )}
         <ScrollView
           style={styles.flex}
           contentContainerStyle={styles.body}
@@ -47,7 +59,7 @@ export default function ProfileScreen() {
           keyboardDismissMode="interactive"
           showsVerticalScrollIndicator={false}>
           <Animated.Text entering={FadeInDown.duration(450)} style={styles.title}>
-            Tell us about you
+            {editing ? 'Your profile' : 'Tell us about you'}
           </Animated.Text>
           <Animated.Text entering={FadeInDown.delay(70).duration(450)} style={styles.subtitle}>
             This is your account. Customers see your store name, not this.
@@ -106,7 +118,7 @@ export default function ProfileScreen() {
         </ScrollView>
 
         <View style={styles.footer}>
-          <PrimaryButton label="Continue" onPress={save} disabled={!isValid} />
+          <PrimaryButton label={editing ? 'Save changes' : 'Continue'} onPress={save} disabled={!isValid} />
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -120,6 +132,10 @@ const styles = StyleSheet.create({
   },
   flex: {
     flex: 1,
+  },
+  topBar: {
+    paddingHorizontal: 20,
+    paddingTop: 4,
   },
   body: {
     paddingHorizontal: 20,

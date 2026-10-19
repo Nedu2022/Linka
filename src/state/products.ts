@@ -23,16 +23,61 @@ export type ProductDraft = {
 
 const STORAGE_KEY = 'products';
 
+const SAMPLE_PRODUCTS: Product[] = [
+  {
+    id: 'p_ankara_wrap',
+    name: 'Ankara Wrap Maxi Dress',
+    description:
+      'Vibrant 100% cotton wax print wrap dress with adjustable waist tie and pockets. Perfect for events and casual outings.',
+    price: 18500,
+    image: 'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?auto=format&fit=crop&w=600&q=80',
+    inStock: true,
+    createdAt: Date.now() - 86400000 * 3,
+    updatedAt: Date.now() - 86400000 * 3,
+  },
+  {
+    id: 'p_adire_silk_shirt',
+    name: 'Adire Silk Camp Collar Shirt',
+    description: 'Hand-dyed Abeokuta indigo Adire pattern on breathable silk blend. Relaxed fit.',
+    price: 14000,
+    image: 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=600&q=80',
+    inStock: true,
+    createdAt: Date.now() - 86400000 * 2,
+    updatedAt: Date.now() - 86400000 * 2,
+  },
+  {
+    id: 'p_leather_slides',
+    name: 'Handcrafted Leather Slides',
+    description: 'Genuine Nigerian leather slides with cushioned arch support and textured rubber sole.',
+    price: 12500,
+    image: 'https://images.unsplash.com/photo-1603808033192-082d6919d3e1?auto=format&fit=crop&w=600&q=80',
+    inStock: true,
+    createdAt: Date.now() - 86400000,
+    updatedAt: Date.now() - 86400000,
+  },
+  {
+    id: 'p_beaded_tote',
+    name: 'Woven Raffia Beaded Tote Bag',
+    description: 'Handwoven raffia bag with wooden handles and delicate glass bead accents.',
+    price: 9500,
+    image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=600&q=80',
+    inStock: true,
+    createdAt: Date.now() - 3600000 * 5,
+    updatedAt: Date.now() - 3600000 * 5,
+  },
+];
+
 let products: Product[] = load();
 const listeners = new Set<() => void>();
 
 function load(): Product[] {
   const raw = readItem(STORAGE_KEY);
-  if (!raw) return [];
+  if (!raw) return SAMPLE_PRODUCTS;
   try {
-    return JSON.parse(raw) as Product[];
+    const parsed = JSON.parse(raw) as Product[];
+    return parsed.length > 0 ? parsed : SAMPLE_PRODUCTS;
   } catch {
-    return [];
+    return SAMPLE_PRODUCTS;
   }
 }
 
@@ -84,6 +129,10 @@ export function saveProducts(drafts: ProductDraft[]) {
   }));
   notify([...created, ...products]);
   return created.map((p) => p.id);
+}
+
+export function clearProducts() {
+  notify([]);
 }
 
 export function deleteProduct(id: string) {

@@ -70,23 +70,26 @@ export default function ProductBulkScreen() {
 
     setRows((prev) => prev.map((r) => (r.key === key ? { ...r, scanning: true } : r)));
 
-    const timer = setTimeout(() => {
-      const suggestion = suggestFromPhoto(uri.length + Date.now() + key.length);
-      setRows((prev) =>
-        prev.map((r) =>
-          r.key === key
-            ? {
-                ...r,
-                scanning: false,
-                name: r.name || suggestion.name,
-                priceText: r.priceText || String(suggestion.price),
-                description: r.description || suggestion.description,
-              }
-            : r,
-        ),
-      );
-      timers.current.delete(key);
-    }, 900 + Math.floor(Math.random() * 400));
+    const timer = setTimeout(
+      () => {
+        const suggestion = suggestFromPhoto(uri.length + Date.now() + key.length);
+        setRows((prev) =>
+          prev.map((r) =>
+            r.key === key
+              ? {
+                  ...r,
+                  scanning: false,
+                  name: r.name || suggestion.name,
+                  priceText: r.priceText || String(suggestion.price),
+                  description: r.description || suggestion.description,
+                }
+              : r,
+          ),
+        );
+        timers.current.delete(key);
+      },
+      900 + Math.floor(Math.random() * 400),
+    );
 
     timers.current.set(key, timer);
   };
@@ -240,7 +243,9 @@ export default function ProductBulkScreen() {
                         <Text style={styles.naira}>₦</Text>
                         <TextInput
                           value={row.priceText}
-                          onChangeText={(text) => updateRow(row.key, { priceText: text.replace(/\D/g, '').slice(0, 9) })}
+                          onChangeText={(text) =>
+                            updateRow(row.key, { priceText: text.replace(/\D/g, '').slice(0, 9) })
+                          }
                           placeholder="0"
                           placeholderTextColor="#A3AAA6"
                           keyboardType="number-pad"

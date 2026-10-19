@@ -10,7 +10,7 @@ import { FIELD_FILL } from '@/components/store/text-field';
 import { Brand, Surface, Typeface } from '@/constants/theme';
 import { storeInitials } from '@/state/store-profile';
 
-export const STORE_DOMAIN = 'sellpadi.com';
+export const STORE_DOMAIN = 'linka.shop';
 
 type Props = {
   logo: string | null;

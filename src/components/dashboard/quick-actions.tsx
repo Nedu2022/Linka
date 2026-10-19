@@ -17,8 +17,18 @@ export function QuickActions({ onAddProduct, onShareStore, onViewStore }: Props)
         <PlusIcon size={20} color={Surface.lime} />
         <Text style={styles.primaryText}>Add product</Text>
       </Pressable>
-      <CircleButton size={58} label="Share store" onPress={onShareStore} icon={<ShareIcon size={21} color={Surface.ink} />} />
-      <CircleButton size={58} label="View store" onPress={onViewStore} icon={<EyeIcon size={21} color={Surface.ink} />} />
+      <CircleButton
+        size={58}
+        label="Share store"
+        onPress={onShareStore}
+        icon={<ShareIcon size={21} color={Surface.ink} />}
+      />
+      <CircleButton
+        size={58}
+        label="View store"
+        onPress={onViewStore}
+        icon={<EyeIcon size={21} color={Surface.ink} />}
+      />
     </View>
   );
 }

@@ -2,19 +2,25 @@ import * as Haptics from 'expo-haptics';
 import { Redirect, router } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useEffect, useState } from 'react';
+import { type LayoutChangeEvent, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import Animated, {
+  Easing,
+  type SharedValue,
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withDelay,
+  withTiming,
+} from 'react-native-reanimated';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { LogoMark } from '@/components/brand/logo-mark';
 import { LegalFootnote } from '@/components/auth/legal-footnote';
-import { CheckIcon, LinkIcon } from '@/components/icons';
 import { PrimaryButton } from '@/components/primary-button';
-import { STORE_DOMAIN } from '@/components/store/store-preview-card';
+import { MarketScene, SCENE_HEIGHT, SCENE_WIDTH } from '@/components/welcome/market-scene';
 import { AppName, Brand, Surface, Typeface } from '@/constants/theme';
 import { getStoreProfile } from '@/state/store-profile';
-import { formatNaira } from '@/utils/money';
 
 export default function Index() {
   // Vendors who already set up a store go straight to their dashboard.
@@ -22,58 +28,109 @@ export default function Index() {
   return <WelcomeScreen />;
 }
 
+// Must match `imageWidth` of the expo-splash-screen plugin in app.json.
+const SPLASH_LOGO = 96;
+const BRAND_LOGO = 34;
+const BRAND_INSET = 24;
+const BRAND_TOP = 8;
+const EASE_OUT = Easing.bezier(0.16, 1, 0.3, 1);
+
+// Launch choreography in ms, measured from the moment the native splash starts fading.
+const LOGO = { delay: 160, duration: 720 };
+const SHEET = { delay: 300, duration: 760 };
+const WORDMARK = { delay: 540, duration: 420 };
+// The illustration starts telling its story as the sheet comes up.
+const SCENE_DELAY = 420;
+
 function WelcomeScreen() {
+  const insets = useSafeAreaInsets();
+  const window = useWindowDimensions();
+  const reduceMotion = useReducedMotion();
+  const [screen, setScreen] = useState<{ width: number; height: number } | null>(null);
+  const [sheetHeight, setSheetHeight] = useState(0);
+
+  const initial = reduceMotion ? 1 : 0;
+  const logo = useSharedValue(initial);
+  const sheet = useSharedValue(initial);
+  const wordmark = useSharedValue(initial);
+  const [showcase, setShowcase] = useState<{ width: number; height: number } | null>(null);
+
+  const ready = screen !== null && sheetHeight > 0;
+
+  // The first frame is a pixel match for the native splash: same green, same logo, same spot. Once it has been
+  // laid out, hide the splash (an invisible swap) and let the logo travel into the header as the page assembles.
   useEffect(() => {
+    if (!ready) return;
     SplashScreen.hide();
-  }, []);
+    if (reduceMotion) return;
+    const run = (value: SharedValue<number>, { delay, duration }: { delay: number; duration: number }) =>
+      value.set(withDelay(delay, withTiming(1, { duration, easing: EASE_OUT })));
+    run(logo, LOGO);
+    run(sheet, SHEET);
+    run(wordmark, WORDMARK);
+  }, [ready, reduceMotion, logo, sheet, wordmark]);
+
+  const size = screen ?? window;
+  const endX = BRAND_INSET + BRAND_LOGO / 2;
+  const endY = insets.top + BRAND_TOP + BRAND_LOGO / 2;
+  const travelX = size.width / 2 - endX;
+  const travelY = size.height / 2 - endY;
+
+  const logoStyle = useAnimatedStyle(() => {
+    const p = logo.get();
+    return {
+      transform: [
+        { translateX: (1 - p) * travelX },
+        { translateY: (1 - p) * travelY },
+        { scale: 1 + p * (BRAND_LOGO / SPLASH_LOGO - 1) },
+      ],
+    };
+  });
+
+  const wordmarkStyle = useAnimatedStyle(() => ({
+    opacity: wordmark.get(),
+    transform: [{ translateX: (1 - wordmark.get()) * -10 }],
+  }));
+
+  const sheetStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: (1 - sheet.get()) * (sheetHeight || size.height) }],
+  }));
+
+  const sceneScale = showcase
+    ? Math.min((showcase.width - 32) / SCENE_WIDTH, (showcase.height - 24) / SCENE_HEIGHT, 1.3)
+    : 1;
+
+  const onScreenLayout = (e: LayoutChangeEvent) => {
+    const { width, height } = e.nativeEvent.layout;
+    setScreen({ width, height });
+  };
 
   const start = () => router.push('/phone-number');
 
   const signIn = () => {
     Haptics.selectionAsync();
-    router.push('/phone-number');
+    router.push({ pathname: '/phone-number', params: { mode: 'login' } });
   };
 
   return (
-    <View style={styles.screen}>
+    <View style={styles.screen} onLayout={onScreenLayout}>
       <StatusBar style="light" />
 
       <SafeAreaView edges={['top']} style={styles.hero}>
         <View style={styles.brand}>
-          <LogoMark size={34} variant="deep" />
-          <Text style={styles.wordmark}>{AppName}</Text>
+          {/* The logo itself is drawn by the travelling mark below; this keeps its slot. */}
+          <View style={styles.brandSlot} />
+          <Animated.Text style={[styles.wordmark, wordmarkStyle]}>{AppName}</Animated.Text>
         </View>
 
-        <View style={styles.showcase}>
-          <Animated.View entering={FadeInDown.duration(500)} style={styles.storeCard}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>AF</Text>
-            </View>
-            <View style={styles.storeText}>
-              <Text style={styles.storeName}>Adaeze Fabrics</Text>
-              <View style={styles.linkRow}>
-                <LinkIcon size={13} color={Surface.green} />
-                <Text style={styles.link} numberOfLines={1}>
-                  {STORE_DOMAIN}/adaeze
-                </Text>
-              </View>
-            </View>
-          </Animated.View>
-
-          <Animated.View entering={FadeInDown.delay(120).duration(500)} style={styles.orderCard}>
-            <View style={styles.paidDot}>
-              <CheckIcon size={14} color={Surface.ink} />
-            </View>
-            <View style={styles.storeText}>
-              <Text style={styles.orderTitle}>New order paid</Text>
-              <Text style={styles.orderMeta}>Ankara wrap dress · Tolu</Text>
-            </View>
-            <Text style={styles.orderAmount}>{formatNaira(18500)}</Text>
-          </Animated.View>
+        <View
+          style={styles.showcase}
+          onLayout={(e) => setShowcase({ width: e.nativeEvent.layout.width, height: e.nativeEvent.layout.height })}>
+          {showcase && <MarketScene play={ready} delay={SCENE_DELAY} reduceMotion={reduceMotion} scale={sceneScale} />}
         </View>
       </SafeAreaView>
 
-      <Animated.View entering={FadeIn.duration(400)} style={styles.sheet}>
+      <Animated.View style={[styles.sheet, sheetStyle]} onLayout={(e) => setSheetHeight(e.nativeEvent.layout.height)}>
         <SafeAreaView edges={['bottom']} style={styles.sheetInner}>
           <View style={styles.copy}>
             <Text style={styles.title}>Your shop,{'\n'}one link away.</Text>
@@ -95,6 +152,12 @@ function WelcomeScreen() {
           </View>
         </SafeAreaView>
       </Animated.View>
+
+      <Animated.View
+        pointerEvents="none"
+        style={[styles.travellingLogo, { left: endX - SPLASH_LOGO / 2, top: endY - SPLASH_LOGO / 2 }, logoStyle]}>
+        <LogoMark size={SPLASH_LOGO} />
+      </Animated.View>
     </View>
   );
 }
@@ -108,11 +171,20 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   brand: {
-    paddingHorizontal: 24,
-    paddingTop: 8,
+    paddingHorizontal: BRAND_INSET,
+    paddingTop: BRAND_TOP,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
+  },
+  brandSlot: {
+    width: BRAND_LOGO,
+    height: BRAND_LOGO,
+  },
+  travellingLogo: {
+    position: 'absolute',
+    width: SPLASH_LOGO,
+    height: SPLASH_LOGO,
   },
   wordmark: {
     color: Brand.white,
@@ -122,85 +194,10 @@ const styles = StyleSheet.create({
   },
   showcase: {
     flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-    gap: 12,
-  },
-  storeCard: {
-    padding: 18,
-    borderRadius: 24,
-    backgroundColor: Surface.card,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-  },
-  avatar: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: Surface.ink,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  avatarText: {
-    color: Brand.white,
-    fontSize: 17,
-    fontFamily: Typeface.bold,
-  },
-  storeText: {
-    flex: 1,
-    gap: 4,
-  },
-  storeName: {
-    color: Surface.ink,
-    fontSize: 18,
-    fontFamily: Typeface.bold,
-    letterSpacing: -0.3,
-  },
-  linkRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  link: {
-    flexShrink: 1,
-    color: Surface.green,
-    fontSize: 14,
-    fontFamily: Typeface.semibold,
-  },
-  orderCard: {
-    marginLeft: 28,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-    backgroundColor: Surface.ink,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  paidDot: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: Surface.lime,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  orderTitle: {
-    color: Brand.white,
-    fontSize: 14.5,
-    fontFamily: Typeface.semibold,
-  },
-  orderMeta: {
-    color: 'rgba(255,255,255,0.6)',
-    fontSize: 12.5,
-    fontFamily: Typeface.medium,
-  },
-  orderAmount: {
-    color: Brand.white,
-    fontSize: 16,
-    fontFamily: Typeface.bold,
-    fontVariant: ['tabular-nums'],
+    // Room for the sheet's rounded corners to overlap.
+    paddingBottom: 12,
   },
   sheet: {
     borderTopLeftRadius: 32,

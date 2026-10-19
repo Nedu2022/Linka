@@ -17,14 +17,14 @@ The app is in active development. The vendor side is mostly built; there is no b
 
 | Area | Screens | State |
 | --- | --- | --- |
-| Onboarding | Welcome, phone number, OTP, profile | Built. OTP accepts any 6-digit code until SMS is connected. |
+| Onboarding | Welcome, phone number, OTP, profile | Built with Termii SMS OTP verification. |
 | Store | Store setup, store preview | Built |
 | Payouts | Payout account, BVN/NIN check | Built. Account name lookup is stubbed. |
-| Dashboard | Stats, quick actions, recent orders | Built with sample data |
+| Dashboard | Stats, quick actions, recent orders | Built with local store |
 | Products | List, add/edit, bulk add from photos, details | Built. AI product suggestions are simulated. |
 | Sharing | QR code, copy link, WhatsApp, Instagram | Built |
-| Orders | Orders list, order details | Not started |
-| Account | Notifications, settings | Not started |
+| Orders | Orders list, order details | Built |
+| Account | Notifications, settings | Built |
 
 ## Tech stack
 
@@ -93,7 +93,7 @@ Returning vendors with a saved store open straight to the dashboard.
 
 These pieces are placeholders and need a server:
 
-- **OTP**: `src/app/verify.tsx` accepts any code. Send and check codes through an SMS provider.
+- **OTP**: Integrated with Termii (`/api/sms/otp/send` and `/api/sms/otp/verify`). Credentials and configuration are read from `.env` (`EXPO_PUBLIC_TERMII_API_KEY`, `EXPO_PUBLIC_TERMII_BASE_URL`, `EXPO_PUBLIC_TERMII_SENDER_ID`).
 - **Account name lookup**: `resolveAccountName` in `src/state/payout.ts` returns the vendor's profile name. Replace it with a call to your server, which calls a bank resolve endpoint (for example Paystack). Don't call that endpoint from the app, because it needs a secret key.
 - **Data**: everything in `src/state/` is saved on the device. Each store exposes the same small API (`save`, `get`, `use`), so it can be swapped for API calls.
 

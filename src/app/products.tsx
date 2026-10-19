@@ -6,7 +6,6 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CircleButton } from '@/components/circle-button';
-import { TODAY } from '@/components/dashboard/sample-data';
 import { TAB_BAR_SPACE, TabBar } from '@/components/dashboard/tab-bar';
 import { PlusIcon } from '@/components/icons';
 import { ProductsEmptyState } from '@/components/products/empty-state';
@@ -16,12 +15,6 @@ import { useProducts } from '@/state/products';
 
 export default function ProductsScreen() {
   const products = useProducts();
-
-  const goTab = (key: string) => {
-    if (key === 'home') router.replace('/dashboard');
-    else if (key === 'products') return;
-    else Haptics.selectionAsync();
-  };
 
   const openAdd = () => {
     Haptics.selectionAsync();
@@ -91,7 +84,7 @@ export default function ProductsScreen() {
         />
       )}
 
-      <TabBar active="products" onChange={goTab} ordersBadge={TODAY.newOrders} />
+      <TabBar active="products" />
     </SafeAreaView>
   );
 }

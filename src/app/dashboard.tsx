@@ -10,13 +10,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { CircleButton } from '@/components/circle-button';
 import { QuickActions } from '@/components/dashboard/quick-actions';
 import { RecentOrders } from '@/components/dashboard/recent-orders';
-import { RECENT_ORDERS, TODAY } from '@/components/dashboard/sample-data';
+import { TODAY } from '@/components/dashboard/sample-data';
 import { SetupCard } from '@/components/dashboard/setup-card';
 import { StatCards } from '@/components/dashboard/stat-cards';
 import { TAB_BAR_SPACE, TabBar } from '@/components/dashboard/tab-bar';
 import { BankIcon, BellIcon, ShieldIcon } from '@/components/icons';
 import { StoreAvatar } from '@/components/store/store-avatar';
 import { Surface, Typeface } from '@/constants/theme';
+import { useUnreadCount } from '@/state/notifications';
+import { useOrders, usePendingOrderCount } from '@/state/orders';
 import { usePayoutAccount } from '@/state/payout';
 import { useStoreProfile } from '@/state/store-profile';
 
@@ -30,6 +32,9 @@ function greeting() {
 export default function DashboardScreen() {
   const store = useStoreProfile();
   const payout = usePayoutAccount();
+  const orders = useOrders();
+  const pendingOrders = usePendingOrderCount();
+  const unread = useUnreadCount();
 
   // On a returning launch the app opens here directly, skipping the animated splash that normally hides it.
   useEffect(() => {
@@ -39,17 +44,6 @@ export default function DashboardScreen() {
   const shareStore = () => {
     Haptics.selectionAsync();
     router.push('/share-store');
-  };
-
-  const comingSoon = () => Haptics.selectionAsync();
-
-  const goTab = (key: string) => {
-    if (key === 'home') return;
-    if (key === 'products') {
-      router.push('/products');
-      return;
-    }
-    comingSoon();
   };
 
   return (
@@ -64,7 +58,16 @@ export default function DashboardScreen() {
               {store.name}
             </Text>
           </View>
-          <CircleButton label="Notifications" onPress={comingSoon} icon={<BellIcon size={21} color={Surface.ink} />} />
+          <CircleButton
+            label={unread > 0 ? `Notifications, ${unread} unread` : 'Notifications'}
+            onPress={() => router.push('/notifications')}
+            icon={
+              <View>
+                <BellIcon size={21} color={Surface.ink} />
+                {unread > 0 && <View style={styles.bellDot} />}
+              </View>
+            }
+          />
         </Animated.View>
 
         <Animated.View entering={FadeInDown.delay(60).duration(450)} style={styles.section}>
@@ -72,7 +75,7 @@ export default function DashboardScreen() {
           <StatCards
             sales={TODAY.sales}
             change={TODAY.changeVsYesterday}
-            newOrders={TODAY.newOrders}
+            newOrders={pendingOrders}
             storeVisits={TODAY.storeVisits}
           />
         </Animated.View>
@@ -81,7 +84,7 @@ export default function DashboardScreen() {
           <QuickActions
             onAddProduct={() => router.push('/product-edit')}
             onShareStore={shareStore}
-            onViewStore={() => router.push('/store-preview')}
+            onViewStore={() => router.push(`/${store.slug}` as any)}
           />
         </Animated.View>
 
@@ -111,11 +114,15 @@ export default function DashboardScreen() {
         )}
 
         <Animated.View entering={FadeInDown.delay(240).duration(450)}>
-          <RecentOrders orders={RECENT_ORDERS} onSeeAll={comingSoon} onOpen={comingSoon} />
+          <RecentOrders
+            orders={orders.slice(0, 4)}
+            onSeeAll={() => router.replace('/orders')}
+            onOpen={(order) => router.push({ pathname: '/order-detail', params: { id: order.id } })}
+          />
         </Animated.View>
       </ScrollView>
 
-      <TabBar active="home" onChange={goTab} ordersBadge={TODAY.newOrders} />
+      <TabBar active="home" />
     </SafeAreaView>
   );
 }
@@ -151,6 +158,17 @@ const styles = StyleSheet.create({
     fontSize: 19,
     fontFamily: Typeface.bold,
     letterSpacing: -0.4,
+  },
+  bellDot: {
+    position: 'absolute',
+    top: -1,
+    right: -1,
+    width: 9,
+    height: 9,
+    borderRadius: 5,
+    borderWidth: 2,
+    borderColor: '#F3F5F4',
+    backgroundColor: '#E5484D',
   },
   section: {
     gap: 12,

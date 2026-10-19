@@ -12,9 +12,9 @@ import Animated, {
 
 import { Brand, Typeface } from '@/constants/theme';
 
-type Props = { value: string; onChange: (value: string) => void; length?: number };
+type Props = { value: string; onChange: (value: string) => void; length?: number; error?: boolean };
 
-export function OtpInput({ value, onChange, length = 6 }: Props) {
+export function OtpInput({ value, onChange, length = 6, error = false }: Props) {
   const inputRef = useRef<TextInput>(null);
   const [focused, setFocused] = useState(false);
 
@@ -27,7 +27,7 @@ export function OtpInput({ value, onChange, length = 6 }: Props) {
   return (
     <Pressable style={styles.row} onPress={() => inputRef.current?.focus()} accessibilityLabel="Verification code">
       {Array.from({ length }, (_, i) => (
-        <OtpCell key={i} char={value[i]} active={focused && i === value.length} />
+        <OtpCell key={i} char={value[i]} active={focused && i === value.length} error={error} />
       ))}
       <TextInput
         ref={inputRef}
@@ -47,7 +47,7 @@ export function OtpInput({ value, onChange, length = 6 }: Props) {
   );
 }
 
-function OtpCell({ char, active }: { char?: string; active: boolean }) {
+function OtpCell({ char, active, error }: { char?: string; active: boolean; error: boolean }) {
   const highlight = useSharedValue(active ? 1 : 0);
   const caret = useSharedValue(1);
 
@@ -63,7 +63,7 @@ function OtpCell({ char, active }: { char?: string; active: boolean }) {
   const caretStyle = useAnimatedStyle(() => ({ opacity: caret.get() }));
 
   return (
-    <View style={[styles.cell, char ? styles.cellFilled : null]}>
+    <View style={[styles.cell, char ? styles.cellFilled : null, error ? styles.cellError : null]}>
       <Animated.View style={[styles.ring, ringStyle]} pointerEvents="none" />
       {char ? (
         <Animated.Text key={char} entering={ZoomIn.duration(160)} style={styles.digit}>
@@ -93,6 +93,10 @@ const styles = StyleSheet.create({
   },
   cellFilled: {
     borderColor: '#C9D1CD',
+  },
+  cellError: {
+    borderColor: '#E5484D',
+    backgroundColor: '#FEF7F7',
   },
   ring: {
     position: 'absolute',

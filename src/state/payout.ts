@@ -39,6 +39,12 @@ export function savePayoutAccount(next: PayoutAccount) {
   listeners.forEach((listener) => listener());
 }
 
+export function clearPayoutAccount() {
+  account = null;
+  writeItem(STORAGE_KEY, null);
+  listeners.forEach((listener) => listener());
+}
+
 export function usePayoutAccount() {
   return useSyncExternalStore(subscribe, () => account);
 }

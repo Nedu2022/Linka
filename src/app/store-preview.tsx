@@ -2,7 +2,7 @@ import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -36,7 +36,11 @@ export default function StorePreviewScreen() {
       <StatusBar style="dark" />
       <View style={styles.topBar}>
         <CircleButton label="Go back" onPress={goBack} icon={<ChevronLeftIcon size={22} color={Surface.ink} />} />
-        <CircleButton label="Share store link" onPress={shareStore} icon={<ShareIcon size={20} color={Surface.ink} />} />
+        <CircleButton
+          label="Share store link"
+          onPress={shareStore}
+          icon={<ShareIcon size={20} color={Surface.ink} />}
+        />
       </View>
 
       <ScrollView style={styles.flex} contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
@@ -48,12 +52,20 @@ export default function StorePreviewScreen() {
         </Animated.Text>
 
         <Animated.View entering={FadeInUp.delay(160).duration(600)} style={styles.card}>
-          <View style={styles.addressBar}>
+          <Pressable
+            onPress={() => {
+              Haptics.selectionAsync();
+              router.push(`/${store.slug}` as any);
+            }}
+            style={styles.addressBar}
+            accessibilityRole="link"
+            accessibilityLabel={`Open live store ${link}`}>
             <LockIcon size={11} color="#7C837F" />
             <Text style={styles.address} numberOfLines={1}>
               {link}
             </Text>
-          </View>
+            <Text style={styles.openLiveText}>Open store ↗</Text>
+          </Pressable>
 
           <View style={styles.storefront}>
             <View style={styles.avatarRing}>
@@ -153,6 +165,12 @@ const styles = StyleSheet.create({
     color: '#555C58',
     fontSize: 13,
     fontFamily: Typeface.medium,
+  },
+  openLiveText: {
+    color: Surface.green,
+    fontSize: 12,
+    fontFamily: Typeface.bold,
+    marginLeft: 6,
   },
   storefront: {
     alignItems: 'center',

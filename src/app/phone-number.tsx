@@ -1,7 +1,8 @@
-import { router } from 'expo-router';
+import * as Haptics from 'expo-haptics';
+import { router, useLocalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, View } from 'react-native';
 import Animated, {
   FadeInDown,
   interpolateColor,
@@ -17,12 +18,15 @@ import { LegalFootnote } from '@/components/auth/legal-footnote';
 import { CheckIcon } from '@/components/icons';
 import { PrimaryButton } from '@/components/primary-button';
 import { Brand, Typeface } from '@/constants/theme';
+import { sendOtp } from '@/services/termii';
 import { formatNigerianNumber } from '@/utils/phone';
 
 const PHONE_DIGITS = 10;
 
 export default function PhoneNumberScreen() {
+  const loggingIn = useLocalSearchParams<{ mode?: string }>().mode === 'login';
   const [digits, setDigits] = useState('');
+  const [sending, setSending] = useState(false);
   const focus = useSharedValue(0);
 
   const isValid = digits.length === PHONE_DIGITS;
@@ -36,7 +40,23 @@ export default function PhoneNumberScreen() {
 
   const goBack = () => (router.canGoBack() ? router.back() : router.replace('/'));
 
-  const sendCode = () => router.push({ pathname: '/verify', params: { phone: digits } });
+  const sendCode = async () => {
+    if (!isValid || sending) return;
+    setSending(true);
+
+    const result = await sendOtp(digits);
+    setSending(false);
+
+    if (result.success) {
+      router.push({
+        pathname: '/verify',
+        params: { phone: digits, pinId: result.pinId, ...(loggingIn && { mode: 'login' }) },
+      });
+    } else {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      Alert.alert('Could Not Send SMS', result.error || 'Unable to deliver verification code.');
+    }
+  };
 
   const fieldStyle = useAnimatedStyle(() => ({
     borderColor: interpolateColor(focus.get(), [0, 1], [Brand.border, AUTH_GREEN]),
@@ -50,10 +70,12 @@ export default function PhoneNumberScreen() {
 
         <View style={styles.body}>
           <Animated.Text entering={FadeInDown.duration(450)} style={styles.title}>
-            Enter your phone number
+            {loggingIn ? 'Welcome back' : 'Enter your phone number'}
           </Animated.Text>
           <Animated.Text entering={FadeInDown.delay(70).duration(450)} style={styles.subtitle}>
-            We&apos;ll text you a 6-digit code to confirm it&apos;s you.
+            {loggingIn
+              ? 'Enter the number you signed up with. We’ll text you a code to log in.'
+              : 'We’ll text you a 6-digit code to confirm it’s you.'}
           </Animated.Text>
 
           <Animated.View entering={FadeInDown.delay(140).duration(450)} style={styles.fieldGroup}>
@@ -93,7 +115,7 @@ export default function PhoneNumberScreen() {
         </View>
 
         <View style={styles.footer}>
-          <PrimaryButton label="Send code" onPress={sendCode} disabled={!isValid} rider="message" />
+          <PrimaryButton label="Send code" onPress={sendCode} disabled={!isValid} loading={sending} rider="message" />
           <LegalFootnote />
         </View>
       </KeyboardAvoidingView>
@@ -176,6 +198,8 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
+    // Web inputs have an intrinsic width that would push the check badge out of the field.
+    minWidth: 0,
     height: '100%',
     paddingLeft: 14,
     color: Brand.ink,

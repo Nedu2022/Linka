@@ -126,10 +126,12 @@ export default function KycScreen() {
           </Animated.Text>
 
           <Animated.View entering={FadeInDown.delay(100).duration(400)} style={styles.segment}>
-            {([
-              { key: 'bvn', label: 'BVN' },
-              { key: 'nin', label: 'NIN' },
-            ] as const).map((option) => {
+            {(
+              [
+                { key: 'bvn', label: 'BVN' },
+                { key: 'nin', label: 'NIN' },
+              ] as const
+            ).map((option) => {
               const selected = idType === option.key;
               return (
                 <Pressable
@@ -170,7 +172,9 @@ export default function KycScreen() {
                   <CheckIcon size={12} color={Brand.white} />
                 </Animated.View>
               ) : (
-                <Text style={styles.count}>{digits.length}/{ID_LENGTH}</Text>
+                <Text style={styles.count}>
+                  {digits.length}/{ID_LENGTH}
+                </Text>
               )}
             </Animated.View>
           </Animated.View>
@@ -301,6 +305,8 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
+    // Web inputs have an intrinsic width that would push the check badge out of the field.
+    minWidth: 0,
     height: '100%',
     paddingHorizontal: 18,
     color: Brand.ink,
